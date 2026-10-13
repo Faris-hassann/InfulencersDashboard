@@ -28,12 +28,17 @@ The dashboard uses the public site's existing logo, footer logo, and crest, stor
 
 Browser API requests pass through the same-origin `/api/backend` route handler, which forwards only known CMS/auth endpoints. This avoids cross-domain cookie requirements. Session cookies are HttpOnly and SameSite Strict. Mutating requests require a custom header and a matching request origin. The Express API also independently authenticates and authorizes every CMS operation. No password or session token is kept in localStorage or embedded in the browser bundle.
 
+The proxy checks the browser Origin against the incoming dashboard Host and the platform's forwarded protocol, rather than Next's internal server URL. After this check, its server-to-server backend request carries the CSRF header and session cookie but omits the browser Origin. This prevents valid dashboard requests from being rejected by the backend's separate browser-origin allowlist. On Vercel, set `API_INTERNAL_URL=https://infulencers-backend.vercel.app` in the dashboard project and redeploy after changing it.
+
 ```powershell
 npm run typecheck
 npm run build
+npm run test:proxy
 npm start
 ```
 
 Fonts are installed locally, so the build does not need Google Fonts. See `DESIGN.md` for design decisions.
+
+After building, the proxy integration test starts the production dashboard with a mock backend that rejects forwarded Origin headers. It covers sign-in/session/sign-out forwarding, foreign-origin and missing-header rejection, upstream/transport 503 responses, and responsive logo preload behavior. Tests use synthetic credentials and do not connect to the production database.
 
 Quill 2.0.3 currently has an HTML-export advisory (GHSA-v3m3-f69x-jf25) and no patched release. This integration sanitizes imported and exported editor HTML with DOMPurify, sanitizes again on the server, and sanitizes rendered rich content. The dependency audit still reports that upstream advisory.

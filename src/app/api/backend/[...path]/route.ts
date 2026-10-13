@@ -8,13 +8,21 @@ async function forward(request: NextRequest, context: { params: Promise<{ path: 
   if (!allowed) return NextResponse.json({ message: "Endpoint not found" }, { status: 404 });
   const mutating = !["GET", "HEAD"].includes(request.method);
   const origin = request.headers.get("origin");
-  if (mutating && (request.headers.get("x-cms-request") !== "1" || (origin && origin !== request.nextUrl.origin))) return NextResponse.json({ message: "Request origin could not be verified" }, { status: 403 });
+  // Next's internal URL can use localhost behind a reverse proxy. Host is the
+  // dashboard the browser actually addressed; the platform supplies its scheme.
+  const publicUrl = new URL(request.nextUrl);
+  publicUrl.host = request.headers.get("host") ?? publicUrl.host;
+  const protocol = request.headers.get("x-forwarded-proto")?.split(",")[0].trim();
+  if (protocol === "http" || protocol === "https") publicUrl.protocol = `${protocol}:`;
+  if (mutating && (request.headers.get("x-cms-request") !== "1" || (origin && origin !== publicUrl.origin))) return NextResponse.json({ message: "Request origin could not be verified" }, { status: 403 });
   if (Number(request.headers.get("content-length") ?? 0) > 1048576) return NextResponse.json({ message: "Request body exceeds 1 MB" }, { status: 413 });
   const headers = new Headers({ "X-CMS-Request": "1" });
   const cookie = request.cookies.get("iw_admin_session")?.value;
   if (cookie && /^[a-f0-9]{64}$/.test(cookie)) headers.set("Cookie", `iw_admin_session=${cookie}`);
   if (request.headers.get("content-type")) headers.set("Content-Type", request.headers.get("content-type")!);
-  if (origin) headers.set("Origin", origin);
+  // The browser origin was verified above. This is now a server-to-server
+  // request, so forwarding that origin would trigger the backend's separate
+  // browser CORS/CSRF allowlist and reject valid dashboard sessions.
   try {
     const body = mutating ? await request.text() : undefined;
     if (body && Buffer.byteLength(body) > 1048576) return NextResponse.json({ message: "Request body exceeds 1 MB" }, { status: 413 });

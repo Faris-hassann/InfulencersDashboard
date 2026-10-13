@@ -26,7 +26,7 @@ export function Shell({ children, admin }: { children: React.ReactNode; admin: A
   return <ToastContext.Provider value={notify}>
     <a className="skip-link" href="#main">Skip to content</a>
     <aside className={`sidebar ${open ? "is-open" : ""}`}>
-      <Link href="/" className="brand"><img src="/brand/logo.jpg" alt="Influencers World logo"/><span>Influencers<strong>World<span className="brand-amber">.</span></strong></span></Link>
+      <Link href="/" className="brand"><img loading="lazy" decoding="async" src="/brand/logo.jpg" alt="Influencers World logo"/><span>Influencers<strong>World<span className="brand-amber">.</span></strong></span></Link>
       <div className="workspace-label"><span className="live-dot"/> Content management system</div>
       <nav aria-label="Main navigation"><Link href="/" className={`nav-link ${pathname === "/" ? "active" : ""}`} aria-current={pathname === "/" ? "page" : undefined}><LayoutDashboard size={19}/><span>Overview</span><ChevronRight className="nav-chevron" size={14}/></Link><p className="nav-label">Publish & share</p>{resources.filter(resource => resource.slug !== "contacts").map(navItem)}<p className="nav-label">Your audience</p>{resources.filter(resource => resource.slug === "contacts").map(navItem)}</nav>
       <div className="sidebar-site"><img src="/brand/footer-logo.jpg" alt="Influencers World"/><div><strong>Dr. Germien Amer</strong><span>Official publishing workspace</span></div></div>

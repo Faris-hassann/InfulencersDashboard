@@ -1,5 +1,9 @@
 # CMS verification
 
+The October 14 dashboard login fix was verified against the hosted backend: direct sign-in succeeded, while the same credentials with the dashboard Origin were rejected with 403. The proxy no longer forwards browser Origin after checking it locally, and its same-origin check uses the public Host/protocol rather than Next's internal URL. Responsive logo images use lazy loading to avoid React's unused automatic preloads.
+
+The updated Next.js production build and all five proxy integration checks pass. A locally running production dashboard also successfully signed in through the live backend, read the admin identity, summary and all six collections, rendered the authenticated tips-and-tricks page, and signed out to revoke the test session. No content records were changed. The current live proxy can reach the backend (an empty login request returns validation status 400); the earlier 503 was not reproduced. These dashboard changes still require deployment.
+
 - Next.js production build passed, including TypeScript checks, the login route, protected CMS routes, the request proxy, and authentication proxy middleware.
 - Express production build passed with the PostgreSQL Prisma client.
 - Both PostgreSQL migrations were applied to the configured database: the six original collections and the administrator/session tables.
