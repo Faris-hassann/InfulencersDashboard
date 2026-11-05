@@ -15,7 +15,7 @@ function localDate(iso: string) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
 }
 
-function valuesFor(record: RecordData | null, slug: string): Values {
+function valuesFor(record: RecordData | null, slug: string, defaultCategoryId?: string): Values {
   if (slug === "contacts") {
     return {
       firstName: record?.firstName ?? "",
@@ -44,7 +44,9 @@ function valuesFor(record: RecordData | null, slug: string): Values {
       titleAr: record?.titleAr ?? "",
       descriptionEn: record?.descriptionEn ?? "",
       descriptionAr: record?.descriptionAr ?? "",
-      articleCategoryId: record?.articleCategoryId ? String(record.articleCategoryId) : "",
+      articleCategoryId: record?.articleCategoryId
+        ? String(record.articleCategoryId)
+        : (defaultCategoryId ?? ""),
       imageUrls: record?.imageUrls && record.imageUrls.length > 0 ? record.imageUrls : [""],
       publishedOn: localDate(record?.publishedOn ?? new Date().toISOString()),
     };
@@ -70,7 +72,7 @@ function valuesFor(record: RecordData | null, slug: string): Values {
   };
 }
 
-export function RecordForm({ slug, id }: { slug: string; id?: string }) {
+export function RecordForm({ slug, id, defaultCategoryId }: { slug: string; id?: string; defaultCategoryId?: string }) {
   const resource = resources.find(r => r.slug === slug)!;
   const [record, setRecord] = useState<RecordData | null>(null);
   const [ready, setReady] = useState(!id);
@@ -103,13 +105,13 @@ export function RecordForm({ slug, id }: { slug: string; id?: string }) {
       ) : !ready ? (
         <Loading label="Loading record…"/>
       ) : (
-        <EditorForm key={`${slug}-${id ?? "new"}-${attempt}`} slug={slug} id={id} record={record}/>
+        <EditorForm key={`${slug}-${id ?? "new"}-${defaultCategoryId ?? "none"}-${attempt}`} slug={slug} id={id} record={record} defaultCategoryId={defaultCategoryId}/>
       )}
     </>
   );
 }
 
-function EditorForm({ slug, id, record }: { slug: string; id?: string; record: RecordData | null }) {
+function EditorForm({ slug, id, record, defaultCategoryId }: { slug: string; id?: string; record: RecordData | null; defaultCategoryId?: string }) {
   const resource = resources.find(r => r.slug === slug)!;
   const router = useRouter();
   const toast = useToast();
@@ -119,12 +121,22 @@ function EditorForm({ slug, id, record }: { slug: string; id?: string; record: R
   const isAward = slug === "awards";
   const hasMultipleImages = isArticle || isAward;
 
-  const [initial] = useState(() => valuesFor(record, slug));
+  const [initial] = useState(() => valuesFor(record, slug, defaultCategoryId));
   const [values, setValues] = useState<Values>(initial);
   const [busy, setBusy] = useState<"POST" | "PUT" | "PATCH" | null>(null);
   const [error, setError] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<{ id: number; nameEn: string; nameAr: string }[]>([]);
+
+  useEffect(() => {
+    if (!id && isArticle && typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const cat = sp.get("category");
+      if (cat && !values.articleCategoryId) {
+        update("articleCategoryId", cat);
+      }
+    }
+  }, [id, isArticle]);
 
   useEffect(() => {
     if (isArticle) {

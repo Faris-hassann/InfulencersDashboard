@@ -7,7 +7,7 @@ import { resources, type ListResponse, type RecordData, formatDate, recordName, 
 import { useToast } from "./shell";
 import { ErrorState, Loading } from "./ui";
 
-export function ResourceTable({ slug }: { slug: string }) {
+export function ResourceTable({ slug, initialCategory }: { slug: string; initialCategory?: string }) {
   const resource = resources.find(r => r.slug === slug)!;
   const isContact = slug === "contacts";
   const isCategory = slug === "article-categories";
@@ -24,10 +24,11 @@ export function ResourceTable({ slug }: { slug: string }) {
   const [sort, setSort] = useState(defaultSortField);
   const [order, setOrder] = useState("desc");
 
-  // Dynamic JSON filter
+  // Dynamic JSON filter initialized with initialCategory if provided
+  const initialFilterStr = isArticle && initialCategory ? JSON.stringify({ articleCategoryId: Number(initialCategory) }) : "";
   const [showFilter, setShowFilter] = useState(false);
-  const [filterText, setFilterText] = useState("");
-  const [appliedFilter, setAppliedFilter] = useState<string>("");
+  const [filterText, setFilterText] = useState(initialFilterStr);
+  const [appliedFilter, setAppliedFilter] = useState<string>(initialFilterStr);
   const [filterError, setFilterError] = useState("");
   const [categories, setCategories] = useState<{ id: number; nameEn: string; nameAr: string }[]>([]);
 
@@ -148,15 +149,36 @@ export function ResourceTable({ slug }: { slug: string }) {
   const primaryTitleSortKey = isContact ? "firstName" : isCategory ? "nameEn" : isArticle || isAward ? "titleEn" : "title";
   const dateSortKey = isContact || isCategory ? "createdOn" : "publishedOn";
 
+  const currentCategoryObj = isArticle && initialCategory ? categories.find(c => String(c.id) === String(initialCategory)) : null;
+  const createLink = isArticle && initialCategory ? `/articles/new?category=${initialCategory}` : `/${slug}/new`;
+
   return (
     <>
       <div className="page-heading compact">
         <div>
-          <p className="eyebrow">Your collections</p>
-          <h1>{resource.title}<span className="amber-text">.</span></h1>
-          <p className="page-description">{resource.description}</p>
+          <p className="eyebrow">
+            {currentCategoryObj ? (
+              <>
+                <Link href="/articles" style={{ color: "var(--muted)" }}>Articles</Link>
+                <span style={{ margin: "0 6px" }}>/</span>
+                <span style={{ color: "var(--ink)", fontWeight: 700 }}>{currentCategoryObj.nameEn}</span>
+                <span className="arabic-badge" style={{ marginLeft: 6 }}>{currentCategoryObj.nameAr}</span>
+              </>
+            ) : (
+              "Your collections"
+            )}
+          </p>
+          <h1>
+            {currentCategoryObj ? currentCategoryObj.nameEn : resource.title}
+            <span className="amber-text">.</span>
+          </h1>
+          <p className="page-description">
+            {currentCategoryObj
+              ? `Viewing all articles filtered by ${currentCategoryObj.nameEn} (${currentCategoryObj.nameAr}).`
+              : resource.description}
+          </p>
         </div>
-        <Link href={`/${slug}/new`} className="button primary">
+        <Link href={createLink} className="button primary">
           <Plus size={18}/> Create {resource.singular}
         </Link>
       </div>
@@ -178,6 +200,15 @@ export function ResourceTable({ slug }: { slug: string }) {
             )}
           </div>
           <div className="table-controls">
+            {currentCategoryObj && (
+              <div className="active-category-pill">
+                <FolderTree size={13}/>
+                <span>{currentCategoryObj.nameEn}</span>
+                <Link href="/articles" title="Show all articles">
+                  <X size={13}/>
+                </Link>
+              </div>
+            )}
             <button
               className={`filter-toolbar-btn ${appliedFilter ? "active" : ""}`}
               onClick={() => setShowFilter(!showFilter)}
@@ -456,7 +487,7 @@ export function ResourceTable({ slug }: { slug: string }) {
                 Clear search & filters
               </button>
             ) : (
-              <Link className="button primary" href={`/${slug}/new`}>
+              <Link className="button primary" href={createLink}>
                 <Plus size={17}/>Create {resource.singular}
               </Link>
             )}
