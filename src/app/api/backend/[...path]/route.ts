@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { backendUrl } from "@/lib/auth-server";
+import { resources } from "@/lib/resources";
+
 export const dynamic = "force-dynamic";
-const collections = new Set(["books", "podcasts", "tips-and-tricks", "news", "contacts", "newsletters", "summary"]);
+const collections = new Set([...resources.map(r => r.slug), "summary"]);
 async function forward(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
   const allowed = (path[0] === "auth" && path.length === 2 && ["login", "logout", "me"].includes(path[1])) || (path[0] === "api" && collections.has(path[1]) && (path.length === 2 || (path.length === 3 && /^[1-9]\d*$/.test(path[2]))));

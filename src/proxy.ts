@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { resources } from "@/lib/resources";
+
 export function proxy(request: NextRequest) {
   const session = request.cookies.get("iw_admin_session")?.value;
   if (!session || !/^[a-f0-9]{64}$/.test(session)) {
@@ -8,4 +10,18 @@ export function proxy(request: NextRequest) {
   }
   return NextResponse.next();
 }
-export const config = { matcher: ["/", "/books/:path*", "/podcasts/:path*", "/tips-and-tricks/:path*", "/news/:path*", "/contacts/:path*", "/newsletters/:path*"] };
+
+export const config = {
+  matcher: [
+    "/",
+    "/books/:path*",
+    "/podcasts/:path*",
+    "/tips-and-tricks/:path*",
+    "/news/:path*",
+    "/contacts/:path*",
+    "/newsletters/:path*",
+    "/articles/:path*",
+    "/awards/:path*",
+    "/article-categories/:path*",
+  ],
+};
