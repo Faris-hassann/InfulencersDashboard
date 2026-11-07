@@ -75,29 +75,50 @@ export function RecordView({ slug, id }: { slug: string; id: string }) {
 
           <div className="view-layout">
             <section className="view-content">
-              {/* English Description / Message */}
-              <div className="form-section-heading">
-                <h2>{isContact ? "Message (English)" : "Description (English)"}</h2>
-              </div>
-              {isContact ? (
-                <p className="contact-message">{descEn}</p>
+              {isCategory ? (
+                <div style={{ background: "var(--card-bg, #fff)", border: "1px solid var(--line)", borderRadius: 12, padding: 24 }}>
+                  <div className="form-section-heading" style={{ margin: 0, paddingBottom: 16 }}>
+                    <h2>Category overview</h2>
+                    <p>Articles organized under this category inherit this thematic classification.</p>
+                  </div>
+                  <div style={{ marginTop: 20, display: "grid", gap: 16 }}>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>English Name</span>
+                      <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0 0" }}>{record.nameEn}</p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>اسم التصنيف (بالعربية)</span>
+                      <p dir="rtl" style={{ fontSize: 18, fontWeight: 700, margin: "4px 0 0", color: "#925f16" }}>{record.nameAr}</p>
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <RichContent html={descEn ?? ""}/>
-              )}
-
-              {/* Arabic Description / Message */}
-              {descAr && (
                 <>
-                  <div className="form-section-heading" style={{ borderTop: "1px solid var(--line)" }}>
-                    <h2 dir="rtl">{isContact ? "الرسالة (بالعربية)" : "الوصف (بالعربية)"}</h2>
+                  {/* English Description / Message */}
+                  <div className="form-section-heading">
+                    <h2>{isContact ? "Message (English)" : "Description (English)"}</h2>
                   </div>
-                  <div dir="rtl">
-                    {isContact ? (
-                      <p className="contact-message rtl-content">{descAr}</p>
-                    ) : (
-                      <RichContent html={descAr}/>
-                    )}
-                  </div>
+                  {isContact ? (
+                    <p className="contact-message">{descEn}</p>
+                  ) : (
+                    <RichContent html={descEn ?? ""}/>
+                  )}
+
+                  {/* Arabic Description / Message */}
+                  {descAr && (
+                    <>
+                      <div className="form-section-heading" style={{ borderTop: "1px solid var(--line)" }}>
+                        <h2 dir="rtl">{isContact ? "الرسالة (بالعربية)" : "الوصف (بالعربية)"}</h2>
+                      </div>
+                      <div dir="rtl">
+                        {isContact ? (
+                          <p className="contact-message rtl-content">{descAr}</p>
+                        ) : (
+                          <RichContent html={descAr}/>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </section>
@@ -122,17 +143,31 @@ export function RecordView({ slug, id }: { slug: string; id: string }) {
                   </div>
                 </section>
               ) : isCategory ? (
-                <section className="detail-panel">
-                  <h2>Category summary</h2>
-                  <div className="contact-detail">
-                    <FolderTree size={18}/>
-                    <div>
-                      <span>English & Arabic Name</span>
-                      <strong>{record.nameEn}</strong>
-                      <p dir="rtl" style={{ margin: "4px 0 0", color: "#925f16" }}>{record.nameAr}</p>
-                    </div>
+                <>
+                  <div className="image-preview">
+                    {!imageError && record.imageUrl ? (
+                      <img src={record.imageUrl} alt={record.nameEn ?? "Category image"} onError={() => setImageError(true)}/>
+                    ) : (
+                      <div className="image-fallback">
+                        <ImageIcon size={35}/>
+                        <p>{record.imageUrl ? "Image could not load" : "No image attached"}</p>
+                      </div>
+                    )}
                   </div>
-                </section>
+                  <section className="detail-panel">
+                    <h2>Category media & links</h2>
+                    {record.imageUrl && (
+                      <a href={record.imageUrl} target="_blank" rel="noopener noreferrer" className="media-link">
+                        <ImageIcon size={18}/>Open category image<ArrowUpRight size={16}/>
+                      </a>
+                    )}
+                    <div style={{ marginTop: 14 }}>
+                      <Link href={`/articles?category=${record.id}`} className="button secondary full-width" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6 }}>
+                        <FolderTree size={16}/>View category articles
+                      </Link>
+                    </div>
+                  </section>
+                </>
               ) : hasMultipleImages ? (
                 <section className="detail-panel">
                   <h2>Images Gallery ({record.imageUrls?.length})</h2>

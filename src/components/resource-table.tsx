@@ -303,7 +303,7 @@ export function ResourceTable({ slug, initialCategory }: { slug: string; initial
                     </th>
                     <th>
                       <button className="sort-button" onClick={() => toggleSort(primaryTitleSortKey)}>
-                        {isContact ? "Name & message" : isCategory ? "Category name & description" : "Title & description"}
+                        {isContact ? "Name & message" : isCategory ? "Category name" : "Title & description"}
                         <ArrowDownUp size={13}/>
                       </button>
                     </th>
@@ -313,7 +313,7 @@ export function ResourceTable({ slug, initialCategory }: { slug: string; initial
                         <th>Phone</th>
                       </>
                     ) : isCategory ? (
-                      <th>Name (Arabic)</th>
+                      <th>Image</th>
                     ) : isArticle ? (
                       <>
                         <th>Category</th>
@@ -359,8 +359,12 @@ export function ResourceTable({ slug, initialCategory }: { slug: string; initial
                             <td className="nowrap">{record.phoneNumber}</td>
                           </>
                         ) : isCategory ? (
-                          <td dir="rtl" className="nowrap" style={{ fontWeight: 650, color: "#925f16" }}>
-                            {record.nameAr}
+                          <td>
+                            {record.imageUrl ? (
+                              <a className="table-link" href={record.imageUrl} target="_blank" rel="noopener noreferrer">
+                                Open image ↗
+                              </a>
+                            ) : "—"}
                           </td>
                         ) : isArticle ? (
                           <>

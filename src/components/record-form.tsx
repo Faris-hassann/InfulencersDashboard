@@ -33,8 +33,7 @@ function valuesFor(record: RecordData | null, slug: string, defaultCategoryId?: 
     return {
       nameEn: record?.nameEn ?? "",
       nameAr: record?.nameAr ?? "",
-      descriptionEn: record?.descriptionEn ?? "",
-      descriptionAr: record?.descriptionAr ?? "",
+      imageUrl: record?.imageUrl ?? "",
       createdOn: localDate(record?.createdOn ?? new Date().toISOString()),
     };
   }
@@ -319,7 +318,7 @@ function EditorForm({ slug, id, record, defaultCategoryId }: { slug: string; id?
           <section className="form-section">
             <div className="form-section-heading">
               <h2>Category details</h2>
-              <p>Name and describe this article category in English and Arabic.</p>
+              <p>Name this article category in English and Arabic and attach a cover image.</p>
             </div>
             <div className="form-fields">
               <div className="field-row">
@@ -327,16 +326,18 @@ function EditorForm({ slug, id, record, defaultCategoryId }: { slug: string; id?
                 {renderField("nameAr", "اسم التصنيف (بالعربية)", "text", "مثال: التكنولوجيا والمستقبل", 250, true, true)}
               </div>
               <div className="field">
-                <label>Description (English)<span className="required">*</span></label>
-                <RichEditor initialValue={initial.descriptionEn ?? ""} onChange={v => update("descriptionEn", v)} invalid={!!fields.descriptionEn}/>
-                {fields.descriptionEn && <p className="field-error">{fields.descriptionEn}</p>}
-              </div>
-              <div className="field">
-                <label>الوصف (بالعربية)<span className="required">*</span><span className="arabic-badge">عربي</span></label>
-                <div dir="rtl" className="rtl-editor">
-                  <RichEditor initialValue={initial.descriptionAr ?? ""} onChange={v => update("descriptionAr", v)} invalid={!!fields.descriptionAr}/>
-                </div>
-                {fields.descriptionAr && <p className="field-error">{fields.descriptionAr}</p>}
+                {renderField("imageUrl", "Category Image URL", "url", "https://example.com/category.jpg", 2048, true)}
+                {values.imageUrl && (
+                  <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                    <img
+                      src={values.imageUrl}
+                      alt="Category preview"
+                      style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 4, border: "1px solid var(--line)" }}
+                      onError={e => { (e.currentTarget as HTMLElement).style.display = "none"; }}
+                    />
+                    <span style={{ fontSize: 11, color: "var(--muted)" }}>Image preview</span>
+                  </div>
+                )}
               </div>
             </div>
           </section>
